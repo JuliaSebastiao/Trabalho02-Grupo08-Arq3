@@ -1,0 +1,26 @@
+# Duas escritas e duas leituras no mesmo endereco.
+# Cada load deve observar a store mais antiga que ja foi confirmada antes dele.
+
+CONFIG ROB_ENTRIES 8
+CONFIG LOAD_BUFFERS 2
+CONFIG STORE_BUFFERS 2
+CONFIG LOAD_LATENCY 1
+CONFIG STORE_LATENCY 1
+
+R1 = 100
+F2 = 5
+F6 = 9
+MEM[100] = 1
+
+S.D F2, 0(R1)
+L.D F4, 0(R1)
+S.D F6, 0(R1)
+L.D F8, 0(R1)
+
+EXPECT F4 = 5
+EXPECT F8 = 9
+EXPECT MEM[100] = 9
+EXPECT EXECUTE 2 = 4
+EXPECT EXECUTE 4 = 7
+EXPECT COMMIT 4 = 9
+EXPECT CYCLES = 9

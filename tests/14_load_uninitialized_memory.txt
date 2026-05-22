@@ -1,0 +1,21 @@
+# Load de endereco nao inicializado.
+# O simulador considera memoria nao inicializada como 0.
+
+CONFIG ROB_ENTRIES 6
+CONFIG LOAD_BUFFERS 1
+CONFIG ADD_RS 1
+CONFIG LOAD_LATENCY 1
+CONFIG ADD_LATENCY 1
+
+R1 = 500
+F4 = 9
+
+L.D F2, 12(R1)
+ADD.D F6, F2, F4
+
+EXPECT F2 = 0
+EXPECT F6 = 9
+EXPECT MEM[512] = 0
+EXPECT EXECUTE 1 = 2
+EXPECT WRITE 1 = 3
+EXPECT CYCLES = 6

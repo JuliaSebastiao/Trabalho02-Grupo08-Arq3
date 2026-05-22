@@ -1,0 +1,26 @@
+# Hazard estrutural: apenas uma estacao Add.
+# SUB.D e ADD.D seguintes so entram quando Add1 fica livre.
+
+CONFIG ROB_ENTRIES 8
+CONFIG ADD_RS 1
+CONFIG ADD_LATENCY 3
+CONFIG SUB_LATENCY 1
+
+F1 = 1
+F2 = 2
+F3 = 10
+F4 = 4
+F5 = 5
+F6 = 6
+
+ADD.D F10, F1, F2
+SUB.D F12, F3, F4
+ADD.D F14, F5, F6
+
+EXPECT F10 = 3
+EXPECT F12 = 6
+EXPECT F14 = 11
+EXPECT ISSUE 2 = 5
+EXPECT ISSUE 3 = 7
+EXPECT EXECUTE 3 = 8-10
+EXPECT CYCLES = 12

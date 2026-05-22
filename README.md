@@ -54,10 +54,37 @@ Rodar a bateria completa de testes:
 .\run_tests.ps1
 ```
 
+Listar os testes disponiveis:
+
+```powershell
+.\run_one_test.ps1 -List
+```
+
+Rodar apenas um teste mostrando o passo a passo completo, ciclo por ciclo, sem pausar:
+
+```powershell
+.\run_one_test.ps1 03
+.\run_one_test.ps1 waw
+.\run_one_test.ps1 hennessy
+```
+
+Rodar apenas um teste pausando a cada ciclo:
+
+```powershell
+.\run_one_test.ps1 03 -Step
+```
+
+Rodar apenas um teste em modo resumo:
+
+```powershell
+.\run_one_test.ps1 03 -Quiet
+```
+
 Se o Windows bloquear scripts PowerShell, use apenas nesta execucao:
 
 ```powershell
 powershell.exe -ExecutionPolicy Bypass -File .\run_tests.ps1
+powershell.exe -ExecutionPolicy Bypass -File .\run_one_test.ps1 03 -Step
 ```
 
 ## Formato da entrada
@@ -103,6 +130,12 @@ Validacoes automaticas:
 - `EXPECT Rd = valor`
 - `EXPECT MEM[endereco] = valor`
 - `EXPECT CYCLES = valor`
+- `EXPECT ISSUE N = ciclo`
+- `EXPECT EXECUTE N = ciclo` ou `EXPECT EXECUTE N = inicio-fim`
+- `EXPECT WRITE N = ciclo`
+- `EXPECT COMMIT N = ciclo`
+
+Nas validacoes por instrucao, `N` e a posicao da instrucao no arquivo, com a primeira instrucao sendo `1`.
 
 Quando um arquivo contem `EXPECT`, o simulador imprime um `Validation report (EXPECT)` e retorna erro se algum valor esperado nao bater com o valor obtido.
 
@@ -156,9 +189,10 @@ Assim, as nomenclaturas usadas pelo simulador sao correspondentes as dos prints.
 - `src/main.cpp`: parser da entrada, estruturas do simulador, ciclo principal e impressao das tabelas.
 - `examples/hennessy.txt`: exemplo baseado nas instrucoes dos slides.
 - `examples/store.txt`: exemplo curto com load, soma e store.
-- `tests/*.txt`: bateria de testes para RAW, WAR, WAW, CDB, ROB cheio e memoria.
+- `tests/*.txt`: bateria com 25 testes para RAW, WAR, WAW, CDB, ROB cheio, buffer cheio, stores, loads, memoria, decimais e wrap-around do ROB.
 - `docs/VALIDACAO.md`: roteiro para demonstrar funcionamento, nomenclaturas e testes.
 - `run_tests.ps1`: script para executar todos os testes com `EXPECT`.
+- `run_one_test.ps1`: script para executar apenas um teste por vez, com passo a passo completo ou pausado.
 
 O ciclo principal executa as fases nesta ordem:
 

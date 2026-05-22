@@ -1,0 +1,19 @@
+# Mesmo registrador usado como as duas fontes.
+# Valida que Vj e Vk podem receber o mesmo valor/tag corretamente.
+
+CONFIG ROB_ENTRIES 6
+CONFIG ADD_RS 2
+CONFIG MULT_RS 1
+CONFIG ADD_LATENCY 1
+CONFIG MUL_LATENCY 2
+
+F2 = 3
+
+ADD.D F10, F2, F2
+MUL.D F12, F10, F10
+
+EXPECT F10 = 6
+EXPECT F12 = 36
+EXPECT EXECUTE 2 = 4-5
+EXPECT COMMIT 2 = 7
+EXPECT CYCLES = 7

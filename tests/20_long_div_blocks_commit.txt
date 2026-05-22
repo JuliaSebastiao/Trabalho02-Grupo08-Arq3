@@ -1,0 +1,23 @@
+# Instrucao antiga longa bloqueia commit de instrucao mais nova.
+# ADD.D termina antes, mas so pode commitar depois da DIV.D antiga.
+
+CONFIG ROB_ENTRIES 6
+CONFIG ADD_RS 1
+CONFIG MULT_RS 1
+CONFIG ADD_LATENCY 1
+CONFIG DIV_LATENCY 5
+
+F2 = 100
+F4 = 10
+F6 = 7
+F8 = 8
+
+DIV.D F10, F2, F4
+ADD.D F12, F6, F8
+
+EXPECT F10 = 10
+EXPECT F12 = 15
+EXPECT WRITE 2 = 4
+EXPECT COMMIT 1 = 8
+EXPECT COMMIT 2 = 9
+EXPECT CYCLES = 9

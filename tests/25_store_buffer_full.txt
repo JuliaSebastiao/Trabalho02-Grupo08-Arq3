@@ -1,0 +1,23 @@
+# Hazard estrutural: apenas um store buffer.
+# Stores seguintes precisam esperar Store1 liberar.
+
+CONFIG ROB_ENTRIES 8
+CONFIG STORE_BUFFERS 1
+CONFIG STORE_LATENCY 2
+
+R1 = 100
+F2 = 1
+F4 = 2
+F6 = 3
+
+S.D F2, 0(R1)
+S.D F4, 8(R1)
+S.D F6, 16(R1)
+
+EXPECT MEM[100] = 1
+EXPECT MEM[108] = 2
+EXPECT MEM[116] = 3
+EXPECT ISSUE 2 = 4
+EXPECT ISSUE 3 = 7
+EXPECT EXECUTE 3 = 8-9
+EXPECT CYCLES = 11

@@ -26,13 +26,19 @@ O que observar:
 
 ## 2. Validacao automatica com EXPECT
 
-Os arquivos de teste usam linhas `EXPECT` para verificar resultados finais e quantidade de ciclos:
+Os arquivos de teste usam linhas `EXPECT` para verificar resultados finais, quantidade de ciclos e etapas da tabela `Instruction status`:
 
 ```txt
 EXPECT F10 = 13
 EXPECT MEM[108] = 7
 EXPECT CYCLES = 12
+EXPECT ISSUE 3 = 5
+EXPECT EXECUTE 3 = 7-10
+EXPECT WRITE 3 = 11
+EXPECT COMMIT 3 = 12
 ```
+
+Nas validacoes por instrucao, o numero depois do campo e a posicao da instrucao no arquivo. Por exemplo, `EXPECT EXECUTE 3 = 7-10` valida que a terceira instrucao executou do ciclo 7 ao ciclo 10.
 
 Ao final da execucao, o simulador imprime:
 
@@ -71,7 +77,41 @@ Tambem e possivel rodar um teste isolado:
 .\tomasulo.exe .\tests\03_waw_false_dependency.txt --quiet
 ```
 
-## 4. Matriz de testes
+## 4. Rodar um teste por vez com passo a passo
+
+Liste todos os testes disponiveis:
+
+```powershell
+.\run_one_test.ps1 -List
+```
+
+Rode um teste especifico mostrando todos os ciclos, com todas as tabelas:
+
+```powershell
+.\run_one_test.ps1 03
+.\run_one_test.ps1 waw
+.\run_one_test.ps1 hennessy
+```
+
+Rode pausando a cada ciclo, ideal para apresentar em sala:
+
+```powershell
+.\run_one_test.ps1 03 -Step
+```
+
+Rode apenas o resumo final e o `Validation report`:
+
+```powershell
+.\run_one_test.ps1 03 -Quiet
+```
+
+Se a politica de execucao do Windows bloquear scripts:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File .\run_one_test.ps1 03 -Step
+```
+
+## 5. Matriz de testes
 
 | Arquivo | O que valida |
 | --- | --- |
@@ -79,7 +119,7 @@ Tambem e possivel rodar um teste isolado:
 | `examples/store.txt` | Store buffer, `S.D`, commit em memoria e resultado final em `Mem[...]`. |
 | `tests/01_independent_out_of_order.txt` | Instrucoes independentes, issue multiplo e execucao fora de ordem. |
 | `tests/02_raw_chain.txt` | Dependencia verdadeira RAW em cadeia. |
-| `tests/03_waw_false_dependency.txt` | Dependencia falsa WAW resolvida por renomeacao via ROB. |
+| `tests/03_waw_false_dependency.txt` | Dependencia falsa WAW resolvida por renomeacao via ROB. Exemplo: `.\run_one_test.ps1 03 -Step`. |
 | `tests/04_war_false_dependency.txt` | Dependencia falsa WAR resolvida porque a estacao captura/tagueia operandos no issue. |
 | `tests/05_load_store_raw.txt` | Store esperando valor produzido por load antes de gravar na memoria. |
 | `tests/06_rob_full_structural_hazard.txt` | Hazard estrutural por ROB cheio; nova instrucao espera entrada livre. |
@@ -87,8 +127,23 @@ Tambem e possivel rodar um teste isolado:
 | `tests/08_negative_offset_division.txt` | Endereco com deslocamento negativo, `DIV.D` e cadeia de dependencias. |
 | `tests/09_memory_same_address_order.txt` | Load mais novo espera store mais antigo para o mesmo endereco. |
 | `tests/10_memory_different_address_no_block.txt` | Load pode prosseguir quando store mais antigo usa outro endereco. |
+| `tests/11_same_register_sources.txt` | Mesmo registrador usado em `Vj` e `Vk`, inclusive dependencia duplicada por tag. |
+| `tests/12_self_overwrite_raw.txt` | Registrador usado como origem e destino na mesma instrucao. |
+| `tests/13_multiple_waw_chain.txt` | Tres WAW seguidos no mesmo registrador e consumo apenas da ultima versao. |
+| `tests/14_load_uninitialized_memory.txt` | Load de memoria nao inicializada, tratada como valor 0. |
+| `tests/15_store_uses_latest_waw_value.txt` | Store depois de WAW grava a versao mais nova do registrador. |
+| `tests/16_store_keeps_old_producer.txt` | Store entre duas escritas mantem a tag do produtor antigo correto. |
+| `tests/17_load_buffer_full.txt` | Hazard estrutural por `Load buffer` cheio. |
+| `tests/18_add_station_full.txt` | Hazard estrutural por estacao `Add` cheia. |
+| `tests/19_commit_width_two.txt` | `COMMIT_WIDTH = 2`, duas instrucoes confirmando no mesmo ciclo. |
+| `tests/20_long_div_blocks_commit.txt` | Instrucao nova termina antes, mas commit espera DIV antiga no ROB. |
+| `tests/21_memory_store_load_store_load.txt` | Sequencia store/load/store/load no mesmo endereco preservando ordem de memoria. |
+| `tests/22_decimal_and_negative_values.txt` | Valores decimais e negativos em operacoes de ponto flutuante. |
+| `tests/23_rob_wraparound_many_instructions.txt` | ROB pequeno reutilizando entradas apos commits. |
+| `tests/24_mixed_all_operations.txt` | Mistura de `L.D`, `S.D`, `ADD.D`, `SUB.D`, `MUL.D`, `DIV.D`. |
+| `tests/25_store_buffer_full.txt` | Hazard estrutural por `Store buffer` cheio. |
 
-## 5. Relacao com dependencias
+## 6. Relacao com dependencias
 
 - RAW: aparece quando `Qj`/`Qk` fica preenchido ate o produtor publicar no CDB.
 - WAW: dois ROBs diferentes apontam para o mesmo registrador, mas `FP registers status` guarda apenas o produtor mais novo.

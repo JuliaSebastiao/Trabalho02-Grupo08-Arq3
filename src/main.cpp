@@ -129,7 +129,11 @@ enum class ExpectKind {
     FpRegister,
     IntRegister,
     Memory,
-    Cycles
+    Cycles,
+    InstructionIssue,
+    InstructionExecute,
+    InstructionWrite,
+    InstructionCommit
 };
 
 struct Expectation {
@@ -137,6 +141,7 @@ struct Expectation {
     int index = -1;
     long long address = 0;
     double number = 0.0;
+    double secondNumber = -1.0;
     string label;
     int lineNo = -1;
 };
@@ -432,6 +437,7 @@ static ProgramInput parseInputFile(const string &path) {
     regex expectInt(R"(^EXPECT\s+R([0-9]+)\s*=\s*([-+]?[0-9]+)$)", regex_constants::icase);
     regex expectMem(R"(^EXPECT\s+(MEM|M)\s*\[\s*([-+]?[0-9]+)\s*\]\s*=\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)$)", regex_constants::icase);
     regex expectCycles(R"(^EXPECT\s+CYCLES\s*=\s*([0-9]+)$)", regex_constants::icase);
+    regex expectInstrCycle(R"(^EXPECT\s+(ISSUE|EXECUTE|WRITE|WRITE_RESULT|COMMIT)\s+([0-9]+)\s*=\s*([0-9]+)(\s*-\s*([0-9]+))?$)", regex_constants::icase);
     regex memInstr(R"(^([A-Za-z.]+)\s+F([0-9]+)\s*,\s*([-+]?[0-9]+)\s*\(\s*R([0-9]+)\s*\)$)", regex_constants::icase);
     regex aluInstr(R"(^([A-Za-z.]+)\s+F([0-9]+)\s*,\s*F([0-9]+)\s*,\s*F([0-9]+)\s*$)", regex_constants::icase);
 
@@ -531,6 +537,34 @@ static ProgramInput parseInputFile(const string &path) {
             input.expectations.push_back(expectation);
             continue;
         }
+        if (regex_match(line, match, expectInstrCycle)) {
+            string field = upper(match[1]);
+            int instructionNumber = stoi(match[2]);
+            if (instructionNumber <= 0) {
+                throw runtime_error("Linha " + to_string(lineNo) + ": numero da instrucao deve comecar em 1.");
+            }
+
+            Expectation expectation;
+            if (field == "ISSUE") {
+                expectation.kind = ExpectKind::InstructionIssue;
+                expectation.label = "Issue I" + to_string(instructionNumber);
+            } else if (field == "EXECUTE") {
+                expectation.kind = ExpectKind::InstructionExecute;
+                expectation.label = "Execute I" + to_string(instructionNumber);
+            } else if (field == "WRITE" || field == "WRITE_RESULT") {
+                expectation.kind = ExpectKind::InstructionWrite;
+                expectation.label = "Write result I" + to_string(instructionNumber);
+            } else {
+                expectation.kind = ExpectKind::InstructionCommit;
+                expectation.label = "Commit I" + to_string(instructionNumber);
+            }
+            expectation.index = instructionNumber - 1;
+            expectation.number = static_cast<double>(stoi(match[3]));
+            expectation.secondNumber = match[5].matched ? static_cast<double>(stoi(match[5])) : expectation.number;
+            expectation.lineNo = lineNo;
+            input.expectations.push_back(expectation);
+            continue;
+        }
 
         if (regex_match(line, match, memInstr)) {
             OpType op;
@@ -589,6 +623,19 @@ static ProgramInput parseInputFile(const string &path) {
 
     if (input.instructions.empty()) {
         throw runtime_error("Arquivo de entrada nao contem instrucoes.");
+    }
+
+    for (const Expectation &expectation : input.expectations) {
+        bool isInstructionExpectation =
+            expectation.kind == ExpectKind::InstructionIssue ||
+            expectation.kind == ExpectKind::InstructionExecute ||
+            expectation.kind == ExpectKind::InstructionWrite ||
+            expectation.kind == ExpectKind::InstructionCommit;
+        if (isInstructionExpectation &&
+            (expectation.index < 0 || expectation.index >= static_cast<int>(input.instructions.size()))) {
+            throw runtime_error("Linha " + to_string(expectation.lineNo) +
+                                ": EXPECT referencia instrucao inexistente.");
+        }
     }
 
     return input;
@@ -1268,33 +1315,64 @@ class TomasuloSimulator {
             double actual = 0.0;
             string actualText;
             string expectedText;
+            bool passed = false;
 
             switch (expectation.kind) {
             case ExpectKind::FpRegister:
                 actual = fp[expectation.index];
                 actualText = formatDouble(actual);
                 expectedText = formatDouble(expectation.number);
+                passed = fabs(actual - expectation.number) < 1e-9;
                 break;
             case ExpectKind::IntRegister:
                 actual = static_cast<double>(integer[expectation.index]);
                 actualText = to_string(integer[expectation.index]);
                 expectedText = to_string(static_cast<long long>(expectation.number));
+                passed = fabs(actual - expectation.number) < 1e-9;
                 break;
             case ExpectKind::Memory: {
                 auto it = memory.find(expectation.address);
                 actual = it == memory.end() ? 0.0 : it->second;
                 actualText = formatDouble(actual);
                 expectedText = formatDouble(expectation.number);
+                passed = fabs(actual - expectation.number) < 1e-9;
                 break;
             }
             case ExpectKind::Cycles:
                 actual = static_cast<double>(finalCycles);
                 actualText = to_string(finalCycles);
                 expectedText = to_string(static_cast<int>(expectation.number));
+                passed = fabs(actual - expectation.number) < 1e-9;
+                break;
+            case ExpectKind::InstructionIssue:
+                actual = static_cast<double>(status[expectation.index].issue);
+                actualText = cycleValue(status[expectation.index].issue);
+                expectedText = to_string(static_cast<int>(expectation.number));
+                passed = status[expectation.index].issue == static_cast<int>(expectation.number);
+                break;
+            case ExpectKind::InstructionExecute:
+                actualText = executeRange(status[expectation.index]);
+                expectedText = static_cast<int>(expectation.number) == static_cast<int>(expectation.secondNumber)
+                                   ? to_string(static_cast<int>(expectation.number))
+                                   : to_string(static_cast<int>(expectation.number)) + "-" +
+                                         to_string(static_cast<int>(expectation.secondNumber));
+                passed = status[expectation.index].execStart == static_cast<int>(expectation.number) &&
+                         status[expectation.index].execEnd == static_cast<int>(expectation.secondNumber);
+                break;
+            case ExpectKind::InstructionWrite:
+                actual = static_cast<double>(status[expectation.index].writeResult);
+                actualText = cycleValue(status[expectation.index].writeResult);
+                expectedText = to_string(static_cast<int>(expectation.number));
+                passed = status[expectation.index].writeResult == static_cast<int>(expectation.number);
+                break;
+            case ExpectKind::InstructionCommit:
+                actual = static_cast<double>(status[expectation.index].commit);
+                actualText = cycleValue(status[expectation.index].commit);
+                expectedText = to_string(static_cast<int>(expectation.number));
+                passed = status[expectation.index].commit == static_cast<int>(expectation.number);
                 break;
             }
 
-            bool passed = fabs(actual - expectation.number) < 1e-9;
             allPassed = allPassed && passed;
             rows.push_back({
                 expectation.label,

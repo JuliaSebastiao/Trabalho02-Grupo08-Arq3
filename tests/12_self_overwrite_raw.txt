@@ -1,0 +1,22 @@
+# Registrador aparece como origem e destino na mesma instrucao.
+# ADD.D F2 le o F2 antigo e so depois renomeia F2 para o novo resultado.
+
+CONFIG ROB_ENTRIES 6
+CONFIG ADD_RS 2
+CONFIG ADD_LATENCY 1
+CONFIG SUB_LATENCY 1
+
+F2 = 10
+F4 = 5
+F8 = 3
+
+ADD.D F2, F2, F4
+SUB.D F6, F2, F8
+
+EXPECT F2 = 15
+EXPECT F6 = 12
+EXPECT ISSUE 2 = 2
+EXPECT EXECUTE 2 = 4
+EXPECT WRITE 2 = 5
+EXPECT COMMIT 2 = 6
+EXPECT CYCLES = 6
