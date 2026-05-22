@@ -1,0 +1,23 @@
+# Hazard estrutural: ROB pequeno.
+# A terceira instrucao deve esperar espaco no Reorder buffer.
+
+CONFIG ROB_ENTRIES 2
+CONFIG ADD_RS 3
+CONFIG ADD_LATENCY 4
+CONFIG ADD_UNITS 1
+
+F1 = 1
+F2 = 2
+F3 = 3
+F4 = 4
+F5 = 5
+F6 = 6
+
+ADD.D F10, F1, F2
+ADD.D F12, F3, F4
+ADD.D F14, F5, F6
+
+EXPECT F10 = 3
+EXPECT F12 = 7
+EXPECT F14 = 11
+EXPECT CYCLES = 15

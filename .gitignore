@@ -1,0 +1,22 @@
+# Build outputs
+tomasulo.exe
+tomasulo
+*.o
+*.obj
+*.exe
+*.out
+*.ilk
+*.pdb
+
+# MSVC
+*.idb
+*.ipdb
+*.iobj
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+Desktop.ini

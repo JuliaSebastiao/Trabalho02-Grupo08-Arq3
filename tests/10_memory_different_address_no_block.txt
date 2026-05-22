@@ -1,0 +1,21 @@
+# Store e load em enderecos diferentes:
+# O load pode avancar porque nao existe conflito de endereco com o store mais antigo.
+
+CONFIG ROB_ENTRIES 6
+CONFIG LOAD_BUFFERS 2
+CONFIG STORE_BUFFERS 2
+CONFIG LOAD_LATENCY 1
+CONFIG STORE_LATENCY 4
+
+R1 = 100
+F2 = 55
+MEM[100] = 1
+MEM[104] = 9
+
+S.D F2, 0(R1)
+L.D F4, 4(R1)
+
+EXPECT F4 = 9
+EXPECT MEM[100] = 55
+EXPECT MEM[104] = 9
+EXPECT CYCLES = 8

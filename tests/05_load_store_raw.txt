@@ -1,0 +1,25 @@
+# Load seguido de store dependente do valor carregado.
+# O store so pode escrever Mem[108] depois que F2 recebe o valor do load.
+
+CONFIG ROB_ENTRIES 6
+CONFIG LOAD_BUFFERS 2
+CONFIG STORE_BUFFERS 2
+CONFIG ADD_RS 2
+CONFIG LOAD_LATENCY 1
+CONFIG STORE_LATENCY 1
+CONFIG ADD_LATENCY 1
+
+R1 = 100
+F2 = 99
+F4 = 1
+MEM[100] = 7
+
+L.D F2, 0(R1)
+S.D F2, 8(R1)
+ADD.D F6, F2, F4
+
+EXPECT F2 = 7
+EXPECT F6 = 8
+EXPECT MEM[100] = 7
+EXPECT MEM[108] = 7
+EXPECT CYCLES = 7

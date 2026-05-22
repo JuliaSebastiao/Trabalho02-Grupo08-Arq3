@@ -1,0 +1,20 @@
+# Dependencia verdadeira de memoria:
+# O load mais novo le o mesmo endereco de um store mais antigo.
+# Ele deve esperar o commit do store e carregar o valor novo.
+
+CONFIG ROB_ENTRIES 6
+CONFIG LOAD_BUFFERS 2
+CONFIG STORE_BUFFERS 2
+CONFIG LOAD_LATENCY 1
+CONFIG STORE_LATENCY 2
+
+R1 = 100
+F2 = 55
+MEM[100] = 1
+
+S.D F2, 0(R1)
+L.D F4, 0(R1)
+
+EXPECT F4 = 55
+EXPECT MEM[100] = 55
+EXPECT CYCLES = 7

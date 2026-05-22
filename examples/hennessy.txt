@@ -1,0 +1,41 @@
+# Exemplo equivalente ao conjunto de instrucoes mostrado nos slides.
+# Linhas CONFIG sao opcionais. Estes valores deixam a execucao curta
+# para testes; remova as latencias se quiser usar os padroes do simulador.
+
+CONFIG ROB_ENTRIES 6
+CONFIG LOAD_BUFFERS 2
+CONFIG STORE_BUFFERS 2
+CONFIG ADD_RS 3
+CONFIG MULT_RS 2
+CONFIG ISSUE_WIDTH 1
+CONFIG COMMIT_WIDTH 1
+CONFIG CDB_WIDTH 1
+CONFIG LOAD_LATENCY 2
+CONFIG ADD_LATENCY 2
+CONFIG SUB_LATENCY 2
+CONFIG MUL_LATENCY 4
+CONFIG DIV_LATENCY 6
+
+R2 = 0
+R3 = 0
+F4 = 2
+F6 = 0
+
+MEM[32] = 10
+MEM[44] = 20
+
+L.D   F6, 32(R2)
+L.D   F2, 44(R3)
+MUL.D F0, F2, F4
+SUB.D F8, F2, F6
+DIV.D F10, F0, F6
+ADD.D F6, F8, F2
+
+EXPECT F0 = 40
+EXPECT F2 = 20
+EXPECT F6 = 30
+EXPECT F8 = 10
+EXPECT F10 = 4
+EXPECT MEM[32] = 10
+EXPECT MEM[44] = 20
+EXPECT CYCLES = 20

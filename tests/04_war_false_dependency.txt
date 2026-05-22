@@ -1,0 +1,25 @@
+# Dependencia falsa WAR:
+# A primeira instrucao le F4 antigo. A segunda escreve F4 depois.
+# O resultado de F2 deve continuar usando o valor antigo de F4.
+
+CONFIG ROB_ENTRIES 8
+CONFIG ADD_RS 3
+CONFIG MULT_RS 1
+CONFIG ADD_UNITS 2
+CONFIG ADD_LATENCY 1
+CONFIG SUB_LATENCY 1
+CONFIG MUL_LATENCY 4
+
+F4 = 3
+F6 = 4
+F8 = 10
+F10 = 1
+
+MUL.D F2, F4, F6
+SUB.D F4, F8, F10
+ADD.D F14, F2, F4
+
+EXPECT F2 = 12
+EXPECT F4 = 9
+EXPECT F14 = 21
+EXPECT CYCLES = 9

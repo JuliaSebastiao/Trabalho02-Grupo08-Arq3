@@ -1,0 +1,24 @@
+# Dependencia falsa WAW:
+# Duas instrucoes escrevem F2. A terceira deve consumir o produtor mais novo de F2.
+
+CONFIG ROB_ENTRIES 8
+CONFIG ADD_RS 3
+CONFIG MULT_RS 1
+CONFIG ADD_UNITS 2
+CONFIG ADD_LATENCY 5
+CONFIG SUB_LATENCY 1
+CONFIG MUL_LATENCY 1
+
+F4 = 10
+F6 = 1
+F8 = 40
+F10 = 3
+F14 = 2
+
+ADD.D F2, F4, F6
+SUB.D F2, F8, F10
+MUL.D F12, F2, F14
+
+EXPECT F2 = 37
+EXPECT F12 = 74
+EXPECT CYCLES = 10
