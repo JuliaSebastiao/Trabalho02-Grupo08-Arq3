@@ -53,6 +53,8 @@ Se algum valor estiver errado, o status vira `FAIL` e o programa retorna codigo 
 
 ## 3. Rodar todos os testes
 
+### Windows
+
 Compile:
 
 ```powershell
@@ -77,7 +79,41 @@ Tambem e possivel rodar um teste isolado:
 .\tomasulo.exe .\tests\03_waw_false_dependency.txt --quiet
 ```
 
+### Linux/macOS
+
+Compile:
+
+```bash
+make
+```
+
+Ou, sem `make`:
+
+```bash
+g++ -std=c++17 -O2 -Wall -Wextra ./src/main.cpp -o ./tomasulo
+```
+
+Rode a suite:
+
+```bash
+sh ./run_tests.sh
+```
+
+Ou pelo `Makefile`:
+
+```bash
+make test
+```
+
+Tambem e possivel rodar um teste isolado diretamente:
+
+```bash
+./tomasulo ./tests/03_waw_false_dependency.txt --quiet
+```
+
 ## 4. Rodar um teste por vez com passo a passo
+
+### Windows
 
 Liste todos os testes disponiveis:
 
@@ -109,6 +145,43 @@ Se a politica de execucao do Windows bloquear scripts:
 
 ```powershell
 powershell.exe -ExecutionPolicy Bypass -File .\run_one_test.ps1 03 -Step
+```
+
+### Linux/macOS
+
+Liste todos os testes disponiveis:
+
+```bash
+sh ./run_one_test.sh --list
+```
+
+Rode um teste especifico mostrando todos os ciclos, com todas as tabelas:
+
+```bash
+sh ./run_one_test.sh 03
+sh ./run_one_test.sh waw
+sh ./run_one_test.sh hennessy
+```
+
+Rode pausando a cada ciclo, ideal para apresentar em sala:
+
+```bash
+sh ./run_one_test.sh 03 --step
+```
+
+Rode apenas o resumo final e o `Validation report`:
+
+```bash
+sh ./run_one_test.sh 03 --quiet
+```
+
+Com `make`:
+
+```bash
+make one TEST=03
+make one TEST=hennessy
+make one TEST=03 MODE=--step
+make one TEST=03 MODE=--quiet
 ```
 
 ## 5. Matriz de testes

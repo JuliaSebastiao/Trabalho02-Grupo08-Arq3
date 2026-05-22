@@ -22,7 +22,15 @@ Em Linux/macOS:
 g++ -std=c++17 -O2 -Wall -Wextra ./src/main.cpp -o ./tomasulo
 ```
 
+Ou usando o `Makefile`:
+
+```bash
+make
+```
+
 ## Como executar
+
+### Windows PowerShell
 
 Execucao completa, imprimindo todos os ciclos:
 
@@ -85,6 +93,79 @@ Se o Windows bloquear scripts PowerShell, use apenas nesta execucao:
 ```powershell
 powershell.exe -ExecutionPolicy Bypass -File .\run_tests.ps1
 powershell.exe -ExecutionPolicy Bypass -File .\run_one_test.ps1 03 -Step
+```
+
+### Linux/macOS
+
+Execucao completa, imprimindo todos os ciclos:
+
+```bash
+./tomasulo ./examples/hennessy.txt
+```
+
+Execucao pausada ciclo a ciclo:
+
+```bash
+./tomasulo ./examples/hennessy.txt --step
+```
+
+Resumo final sem tabelas intermediarias:
+
+```bash
+./tomasulo ./examples/hennessy.txt --quiet
+```
+
+Rodar a bateria completa de testes:
+
+```bash
+sh ./run_tests.sh
+```
+
+Tambem e possivel usar o alvo do `Makefile`:
+
+```bash
+make test
+```
+
+Listar os testes disponiveis:
+
+```bash
+sh ./run_one_test.sh --list
+```
+
+Rodar apenas um teste mostrando o passo a passo completo:
+
+```bash
+sh ./run_one_test.sh 03
+sh ./run_one_test.sh waw
+sh ./run_one_test.sh hennessy
+```
+
+Rodar apenas um teste pausando a cada ciclo:
+
+```bash
+sh ./run_one_test.sh 03 ./tomasulo --step
+```
+
+Rodar apenas um teste em modo resumo:
+
+```bash
+sh ./run_one_test.sh 03 ./tomasulo --quiet
+```
+
+Com o `Makefile`, tambem da para rodar um teste isolado assim:
+
+```bash
+make one TEST=03
+make one TEST=waw
+make one TEST=03 MODE=--step
+make one TEST=03 MODE=--quiet
+```
+
+Para limpar binarios gerados:
+
+```bash
+make clean
 ```
 
 ## Formato da entrada
@@ -193,6 +274,9 @@ Assim, as nomenclaturas usadas pelo simulador sao correspondentes as dos prints.
 - `docs/VALIDACAO.md`: roteiro para demonstrar funcionamento, nomenclaturas e testes.
 - `run_tests.ps1`: script para executar todos os testes com `EXPECT`.
 - `run_one_test.ps1`: script para executar apenas um teste por vez, com passo a passo completo ou pausado.
+- `Makefile`: compilacao e testes em Linux/macOS.
+- `run_tests.sh`: versao Linux/macOS para executar todos os testes.
+- `run_one_test.sh`: versao Linux/macOS para executar apenas um teste por vez.
 
 O ciclo principal executa as fases nesta ordem:
 
